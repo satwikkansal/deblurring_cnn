@@ -89,7 +89,7 @@ def create_model(sess,features,labels):
 
 def create_cnn_loss(cnn_output , labels):
     # we use euclidean loss function
-    loss = tf.losses.mean_squared_error(label , cnn_output)
+    loss = tf.losses.mean_squared_error(labels , cnn_output)
     return loss
 
 

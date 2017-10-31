@@ -2,7 +2,7 @@ import tensorflow as tf
 
 # get files and features and input streams for 
 # tensorflow product graph
-def get_files(sess, ffilenames , lfilenames):
+def get_files(sess, ffilenames , lfilenames ,BATCH_SIZE=5):
     train_feature_input_queue = tf.train.string_input_producer(ffilenames,shuffle=False)
     train_label_input_queue = tf.train.string_input_producer(lfilenames, shuffle=False)
 
