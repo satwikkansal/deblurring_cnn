@@ -95,7 +95,7 @@ def _save_image_batch(epoch , batch_number ,  image_batch):
         image = Image.fromarray(image,mode='RGB')
         image.save(os.path.join(save_dir,"Image_"+str(image_idx)+".png"))
 
-
+# TODO : print the output of the nn to see if the values are more than expected
 def train_neural_network():
     
     sess = setup_tensorflow()
@@ -134,7 +134,7 @@ def train_neural_network():
             _ , loss = sess.run(ops, feed_dict=feed_dict)
 
             print ("Epoch : " + str(epoch) + "/" + str (EPOCHS) + " , Batch : " + str(batch) + "/" + str(num_batches) + " completed; Loss " + str(loss))
-            
+             
             if batch%SUMMARY_PERIOD == 0:
                 # save model progress and save output images for this batch
                 feed_dict = {test_input:test_feature_batch, test_label:test_label_batch}
