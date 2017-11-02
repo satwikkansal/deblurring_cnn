@@ -91,7 +91,12 @@ def train_neural_network():
             ops = [cnn_minimize , cnn_loss]
             _ , loss = sess.run(ops, feed_dict=feed_dict)
 
-            print ("Epoch : " + str(epoch) + "/" + str (EPOCHS) + " , Batch : " + batch + "/" + num_batches + " completed; Loss " + loss)
+            print ("Epoch : " + str(epoch) + "/" + str (EPOCHS) + " , Batch : " + str(batch) + "/" + str(num_batches) + " completed; Loss " + str(loss))
+            
+            if batch%SUMMARY_PERIOD == 0:
+                # save model progress and save output images for this batch
+                
+
         
 
 train_neural_network() 
