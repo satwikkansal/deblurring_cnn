@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np
 
+FLAGS = tf.app.flags.FLAGS
+
 # Class model for CNN
 class Model:
 
@@ -81,11 +83,20 @@ def convolutional_nn(sess, features , labels ):
 
 # function to create the deep cnn model
 def create_model(sess,features,labels):
-    
-    with tf.variable_scope('cnn'):
-        output,cnn_vars = convolutional_nn(sess,features,labels)
+    rows = int(features.get_shape()[1])
+    cols = int(features.get_shape()[2])
+    channels = int(features.get_shape()[3])
 
-    return output,cnn_vars
+    test_input = tf.placeholder(tf.float32, shape=[FLAGS.BATCH_SIZE,rows,cols,channels])
+    test_label = tf.placeholder(tf.float32, shape=[FLAGS.BATCH_SIZE,rows,cols,channels])
+    
+    with tf.variable_scope('cnn') as scope:
+        output,cnn_vars = convolutional_nn(sess,features,labels)
+        scope.reuse_variables()
+        test_output ,_ = convolutional_nn(sess,test_input,test_label)
+
+
+    return output,cnn_vars,test_input,test_label,test_output
 
 def create_cnn_loss(cnn_output , labels):
     # we use euclidean loss function

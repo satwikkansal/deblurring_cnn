@@ -1,8 +1,10 @@
 import tensorflow as tf
 
+FLAGS = tf.app.flags.FLAGS
+
 # get files and features and input streams for 
 # tensorflow product graph
-def get_files(sess, ffilenames , lfilenames ,BATCH_SIZE=5):
+def get_files(sess, ffilenames , lfilenames):
     train_feature_input_queue = tf.train.string_input_producer(ffilenames,shuffle=False)
     train_label_input_queue = tf.train.string_input_producer(lfilenames, shuffle=False)
 
@@ -25,8 +27,8 @@ def get_files(sess, ffilenames , lfilenames ,BATCH_SIZE=5):
     # Get the batches from the defined images
     train_image_batch , train_label_batch = tf.train.batch(
             [timage,tlabel],
-            batch_size=BATCH_SIZE)
-    
+            batch_size=FLAGS.BATCH_SIZE) 
+
     # start queue runners and enable coordinator
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess , coord=coord)
