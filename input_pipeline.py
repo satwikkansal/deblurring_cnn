@@ -33,10 +33,4 @@ def get_files(sess, ffilenames , lfilenames):
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess , coord=coord)
 
-    print "Input pipeline ready!!"
     return tf.cast(train_image_batch, tf.float32) , tf.cast(train_label_batch,tf.float32)
-
-  
-
-
-           

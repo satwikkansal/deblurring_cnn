@@ -15,6 +15,7 @@ FLAGS = tf.app.flags.FLAGS
 train_dir = './data/train/'
 test_dir = './data/test/'
 output_dir = './output/'
+model_dir = './model/'
 
 # basic parameters for easy setup
 TRAINING_DATASET_SIZE = 2000
@@ -29,6 +30,7 @@ LEARNING_RATE = 0.0001
 SUMMARY_PERIOD=10
 
 tf.app.flags.DEFINE_integer('BATCH_SIZE', 5 , 'Batch size for training and testing') 
+tf.app.flags.DEFINE_float('beta' , 0.0005, 'Beta value for the weight decay term')
 
 def shuffle_data(features, labels):
     assert (len(features)==len(labels)),"Input Vector size is not equal to output vector size"
@@ -80,6 +82,10 @@ def setup_tensorflow():
     random.seed(0)
     return sess
 
+def make_dir_if_not_exists(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 def _save_image_batch(epoch , batch_number ,  image_batch):
     # convert float to int type array
     image_batch = image_batch.astype(np.uint8)
@@ -87,13 +93,19 @@ def _save_image_batch(epoch , batch_number ,  image_batch):
     save_dir = os.path.join(output_dir,"Epoch_"+str(epoch),"Batch_"+str(batch_number/10))
     
     # make directory if not exists
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-        
+    make_dir_if_not_exists(save_dir)
+
     for image_idx in range(batch_size):
         image = image_batch[image_idx]
         image = Image.fromarray(image,'RGB')
         image.save(os.path.join(save_dir,"Image_"+str(image_idx)+".png"))
+
+
+def _save_tf_model(sess):
+    saver = tf.train.Saver()
+    make_dir_if_not_exists(model_dir)
+    saver.save(sess,model_dir)
+
 
 # TODO : print the output of the nn to see if the values are more than expected
 def train_neural_network():
@@ -103,7 +115,6 @@ def train_neural_network():
     train_feature_filenames , train_label_filenames = get_filenames()
     test_feature_filenames , test_label_filenames = get_test_filenames()
     
-    print test_feature_filenames,test_label_filenames
 
     train_features , train_labels = input_pipeline.get_files(sess,train_feature_filenames,train_label_filenames)
     test_features , test_labels = input_pipeline.get_files(sess,test_feature_filenames, test_label_filenames)
@@ -122,15 +133,11 @@ def train_neural_network():
 
     # cache test features and labels so we can monitor the progress
     test_feature_batch , test_label_batch = sess.run([test_features,test_labels])
-
     num_batches = TRAINING_DATASET_SIZE/FLAGS.BATCH_SIZE
-    
-    # save test batches for testing purposes 
-    
+
 
     for epoch in range(1,EPOCHS+1):
         for batch in range(1,(TRAINING_DATASET_SIZE/FLAGS.BATCH_SIZE) + 1):
-            
             # create feed dictionary for passing hyperparameters
             feed_dict = {learning_rate: LEARNING_RATE}
 
@@ -147,6 +154,8 @@ def train_neural_network():
                 
                 # save the output images
                 _save_image_batch(epoch,batch,output_batch)
+                _save_tf_model(sess)
+
                 print "Image batch saved!!"
 
 

@@ -33,8 +33,14 @@ class Model:
 
         with tf.variable_scope(self.get_layer_str()):
             input_channels = self.get_num_inputs()
-             
-            weight = tf.get_variable('weight' ,shape=[kernel_size,kernel_size,input_channels,output_channels], initializer=tf.contrib.layers.xavier_initializer())
+         
+            weight = tf.get_variable('weight' ,shape=[kernel_size,kernel_size,input_channels,output_channels],
+                    initializer=tf.contrib.layers.xavier_initializer())
+
+            # Compute the decay term
+            weight_decay = tf.multiply(tf.nn.l2_loss(weight),FLAGS.beta)
+            tf.add_to_collection('losses',weight_decay)
+
             out = tf.nn.conv2d(self.get_output() , weight , strides=[1,stride,stride,1],padding='SAME')
 
             initb = tf.constant(0.0 , shape=[output_channels])
@@ -52,33 +58,35 @@ class Model:
 
         self.outputs.append(out);
         return self
-   
+    
+    def add_relu(self):
+        with tf.variable_scope(self.get_layer_str()):
+            out = tf.nn.relu(self.get_output())
+
+        self.outputs.append(out)
 
 def convolutional_nn(sess, features , labels ):
-    old_vars = tf.all_variables()
+
+    old_vars = tf.global_variables()
 
     model = Model('CNN' , features)
-
+    
+    # define layer_list as tuples of layers where each tuple has values (kernel_size,output_channels)
+    layer_list = [(19,128),(1,320),(1,320),(1,320),(3,128),(1,512),(5,128),(5,128),(3,128),(5,128),(5,128),(1,256),(7,64),(7,3)]
+    
     # add conv layers 
-    model.add_conv2d(19,128)
-    model.add_conv2d(1,320)
-    model.add_conv2d(1,320)
-    model.add_conv2d(1,320)
-    model.add_conv2d(3,128)
-    model.add_conv2d(1,512)
-    model.add_conv2d(5,128)
-    model.add_conv2d(5,128)
-    model.add_conv2d(3,128)
-    model.add_conv2d(5,128)
-    model.add_conv2d(5,128)
-    model.add_conv2d(1,256)
-    model.add_conv2d(7,64)
-    model.add_conv2d(7,3)
-
-    new_vars = tf.all_variables();
-
+    for layer in layer_list[:-1]:
+       model.add_conv2d(layer[0],layer[1])
+       model.add_relu()
+    
+    # add the final convolutional layer
+    model.add_conv2d(layer_list[-1][0],layer_list[-1][1])
+    
+    # collect all variables for optimization
+    new_vars = tf.global_variables();
     cnn_vars = list(set(new_vars)-set(old_vars))
-    return model.get_output() , cnn_vars
+
+    return model.get_output() , cnn_vars 
 
 
 # function to create the deep cnn model
@@ -93,15 +101,18 @@ def create_model(sess,features,labels):
     with tf.variable_scope('cnn') as scope:
         output,cnn_vars = convolutional_nn(sess,features,labels)
         scope.reuse_variables()
-        test_output ,_ = convolutional_nn(sess,test_input,test_label)
+        test_output, _  = convolutional_nn(sess,test_input,test_label)
 
 
     return output,cnn_vars,test_input,test_label,test_output
 
 def create_cnn_loss(cnn_output , labels):
-    # we use euclidean loss function
-    loss = tf.losses.mean_squared_error(labels , cnn_output)
-    return loss
+
+    # we use euclidean loss function and weight decay as regularizer
+    euclidean_loss = tf.losses.mean_squared_error(labels , cnn_output)
+    tf.add_to_collection('losses' ,euclidean_loss)
+    
+    return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
 
 def create_optimizer(cnn_loss , cnn_vars_list):
