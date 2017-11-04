@@ -71,7 +71,7 @@ def get_test_filenames():
 
 
 def setup_tensorflow():
-    config = tf.ConfigProto(log_device_placement=True)
+    config = tf.ConfigProto(log_device_placement=False)
     sess = tf.Session(config=config)
     
     with sess.graph.as_default():
@@ -82,7 +82,7 @@ def setup_tensorflow():
 
 def _save_image_batch(epoch , batch_number ,  image_batch):
     # convert float to int type array
-    image_batch = image_batch.astype(int)        
+    image_batch = image_batch.astype(np.uint8)
     batch_size = image_batch.shape[0]
     save_dir = os.path.join(output_dir,"Epoch_"+str(epoch),"Batch_"+str(batch_number/10))
     
@@ -92,7 +92,7 @@ def _save_image_batch(epoch , batch_number ,  image_batch):
         
     for image_idx in range(batch_size):
         image = image_batch[image_idx]
-        image = Image.fromarray(image,mode='RGB')
+        image = Image.fromarray(image,'RGB')
         image.save(os.path.join(save_dir,"Image_"+str(image_idx)+".png"))
 
 # TODO : print the output of the nn to see if the values are more than expected
@@ -103,6 +103,8 @@ def train_neural_network():
     train_feature_filenames , train_label_filenames = get_filenames()
     test_feature_filenames , test_label_filenames = get_test_filenames()
     
+    print test_feature_filenames,test_label_filenames
+
     train_features , train_labels = input_pipeline.get_files(sess,train_feature_filenames,train_label_filenames)
     test_features , test_labels = input_pipeline.get_files(sess,test_feature_filenames, test_label_filenames)
     
@@ -123,6 +125,9 @@ def train_neural_network():
 
     num_batches = TRAINING_DATASET_SIZE/FLAGS.BATCH_SIZE
     
+    # save test batches for testing purposes 
+    
+
     for epoch in range(1,EPOCHS+1):
         for batch in range(1,(TRAINING_DATASET_SIZE/FLAGS.BATCH_SIZE) + 1):
             
