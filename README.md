@@ -1,2 +1,2 @@
-# deblurring_cnn
-CNN implementation in Tensorflow for Deblurring text images
+# Deblurring Convolutional Neural Network
+Deep CNN implementation in Tensorflow for Deblurring text images
