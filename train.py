@@ -16,6 +16,7 @@ train_dir = './data/train/'
 test_dir = './data/test/'
 output_dir = './output/'
 model_dir = './model/'
+summary_dir = './logs/'
 
 # basic parameters for easy setup
 TRAINING_DATASET_SIZE = 2000
@@ -28,6 +29,7 @@ LEARNING_RATE = 0.0001
 
 # Logging Parameters
 SUMMARY_PERIOD=10
+CHECKPOINT_PERIOD=10
 
 tf.app.flags.DEFINE_integer('BATCH_SIZE', 5 , 'Batch size for training and testing') 
 tf.app.flags.DEFINE_float('beta' , 0.0005, 'Beta value for the weight decay term')
@@ -107,7 +109,6 @@ def _save_tf_model(sess):
     saver.save(sess,model_dir)
 
 
-# TODO : print the output of the nn to see if the values are more than expected
 def train_neural_network():
     
     sess = setup_tensorflow()
@@ -115,7 +116,7 @@ def train_neural_network():
     train_feature_filenames , train_label_filenames = get_filenames()
     test_feature_filenames , test_label_filenames = get_test_filenames()
     
-
+    # we can also have input summaries written out to tensorboard
     train_features , train_labels = input_pipeline.get_files(sess,train_feature_filenames,train_label_filenames)
     test_features , test_labels = input_pipeline.get_files(sess,test_feature_filenames, test_label_filenames)
     
@@ -124,17 +125,28 @@ def train_neural_network():
     output , cnn_var_list, test_input, test_label, test_output = model.create_model(sess,train_features,train_labels)
    
     # get loss and minimize operations
-    cnn_loss = model.create_cnn_loss(output, train_labels)
+    with tf.name_scope("loss"):
+        cnn_loss = model.create_cnn_loss(output, train_labels)
+        tf.summary.scalar("loss",cnn_loss)
+
     (global_step , learning_rate, cnn_minimize) = model.create_optimizer(cnn_loss, cnn_var_list)
     
-
+    # get loss summaries for visualization in tensorboard
+    tf.summary.scalar('loss',cnn_loss)
+    
     # train the network
     sess.run(tf.global_variables_initializer())
-
+    
     # cache test features and labels so we can monitor the progress
     test_feature_batch , test_label_batch = sess.run([test_features,test_labels])
     num_batches = TRAINING_DATASET_SIZE/FLAGS.BATCH_SIZE
 
+    
+    # add computation graph to the summary writer
+    writer = tf.summary.FileWriter(summary_dir)
+    writer.add_graph(sess.graph)
+    
+    merged_summaries = tf.summary.merge_all()
 
     for epoch in range(1,EPOCHS+1):
         for batch in range(1,(TRAINING_DATASET_SIZE/FLAGS.BATCH_SIZE) + 1):
@@ -142,12 +154,17 @@ def train_neural_network():
             feed_dict = {learning_rate: LEARNING_RATE}
 
             #create operations list for root nodes of computation graph
-            ops = [cnn_minimize , cnn_loss]
-            _ , loss = sess.run(ops, feed_dict=feed_dict)
+            ops = [cnn_minimize , cnn_loss , merged_summaries]
+            _ , loss , summaries = sess.run(ops, feed_dict=feed_dict)
 
             print ("Epoch : " + str(epoch) + "/" + str (EPOCHS) + " , Batch : " + str(batch) + "/" + str(num_batches) + " completed; Loss " + str(loss))
-             
+
             if batch%SUMMARY_PERIOD == 0:
+                # write summary to logdir
+                writer.add_summary(summaries)
+                print "Summary Written to Logdir"
+             
+            if batch%CHECKPOINT_PERIOD= 0:
                 # save model progress and save output images for this batch
                 feed_dict = {test_input:test_feature_batch, test_label:test_label_batch}
                 output_batch = sess.run(test_output , feed_dict=feed_dict)
@@ -156,7 +173,7 @@ def train_neural_network():
                 _save_image_batch(epoch,batch,output_batch)
                 _save_tf_model(sess)
 
-                print "Image batch saved!!"
+                print "Image batch and model saved!!"
 
 
 train_neural_network() 

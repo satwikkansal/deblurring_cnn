@@ -45,6 +45,9 @@ class Model:
 
             initb = tf.constant(0.0 , shape=[output_channels])
             bias = tf.get_variable('bias' , initializer=initb)
+            
+            tf.summary.histogram("weight",weight)
+            tf.summary.histogram("bias", bias)
 
             out = tf.nn.bias_add(out,bias);
 
