@@ -164,7 +164,7 @@ def train_neural_network():
                 writer.add_summary(summaries)
                 print "Summary Written to Logdir"
              
-            if batch%CHECKPOINT_PERIOD= 0:
+            if batch%CHECKPOINT_PERIOD == 0:
                 # save model progress and save output images for this batch
                 feed_dict = {test_input:test_feature_batch, test_label:test_label_batch}
                 output_batch = sess.run(test_output , feed_dict=feed_dict)
