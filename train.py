@@ -41,7 +41,7 @@ def shuffle_data(features, labels):
     assert (len(features) == len(labels)
             ), "Input Vector size is not equal to output vector size"
 
-    shuffled_idx = range(len(features))
+    shuffled_idx = list(range(len(features)))
     random.shuffle(shuffled_idx)
 
     shuffled_features = [features[i] for i in shuffled_idx]
@@ -169,14 +169,13 @@ def train_neural_network():
             ops = [cnn_minimize, cnn_loss, merged_summaries]
             _, loss, summaries = sess.run(ops, feed_dict=feed_dict)
 
-            print("Epoch : " + str(epoch) + "/" + str(EPOCHS) + " , Batch : " +
+            print(("Epoch : " + str(epoch) + "/" + str(EPOCHS) + " , Batch : " +
                   str(batch) + "/" + str(num_batches) + " completed; Loss " +
-                  str(loss))
+                  str(loss)))
 
             if batch % SUMMARY_PERIOD == 0:
                 # write summary to logdir
                 writer.add_summary(summaries)
-                print "Summary Written to Logdir"
 
             if batch % CHECKPOINT_PERIOD == 0:
                 # save model progress and save output images for this batch
@@ -188,7 +187,7 @@ def train_neural_network():
                 _save_image_batch(epoch, batch, output_batch)
                 _save_tf_model(sess)
 
-                print "Image batch and model saved!!"
+                print("Image batch and model saved!!")
 
 
 train_neural_network()
