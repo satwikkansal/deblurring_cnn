@@ -17,6 +17,11 @@ output_dir = './output/'
 model_dir = './model/'
 summary_dir = './logs/'
 
+for directory in [train_dir, test_dir, output_dir,
+                  model_dir, summary_dir]:
+    if os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+
 # basic parameters for easy setup
 TRAINING_DATASET_SIZE = 2000
 TESTING_DATASET_SIZE = 200
