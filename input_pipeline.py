@@ -2,10 +2,9 @@ import tensorflow as tf
 
 FLAGS = tf.app.flags.FLAGS
 
+
 # get files and features and input streams for
 # tensorflow product graph
-
-
 def get_files(sess, ffilenames, lfilenames):
     train_feature_input_queue = tf.train.string_input_producer(
         ffilenames, shuffle=False)
