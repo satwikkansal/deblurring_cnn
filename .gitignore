@@ -1,4 +1,6 @@
-data/
-output/
-logs/
+data/train/**
+data/test/**
+output/**
+logs/**
 *.pyc
+**.bak
