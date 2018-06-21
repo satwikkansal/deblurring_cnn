@@ -1,11 +1,10 @@
-import tensorflow as tf
-import numpy as np
-
 import os
 import glob
 import random
-
 from PIL import Image
+
+import tensorflow as tf
+import numpy as np
 
 import input_pipeline
 import model
